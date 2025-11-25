@@ -215,19 +215,21 @@ async def search_manga(
             "image_url": None 
         }]
 
-    # 3. Translate if requested language is Spanish
-    if lang == "es":
-        translator = GoogleTranslator(source='auto', target='es')
-        
-        if result_data.get("sinopsis"):
-            try:
-                # Split text if too long (Google Translate limit is usually 5000 chars, but good practice)
-                # For simplicity here, we'll just translate the whole block as synopsis usually fits.
-                result_data["sinopsis"] = translator.translate(result_data["sinopsis"])
-            except Exception as e:
-                print(f"Translation error (synopsis): {e}")
+    # 3. Translate Synopsis
+    # Always provide both English (original) and Spanish (translated) for dynamic switching
+    synopsis_en = result_data.get("sinopsis")
+    synopsis_es = None
 
-        # Translate Author roles or generic text if needed? 
-        # Names are usually not translated.
+    if synopsis_en:
+        result_data["sinopsis_en"] = synopsis_en
+        try:
+            translator = GoogleTranslator(source='auto', target='es')
+            # Split text if too long (Google Translate limit is usually 5000 chars, but good practice)
+            # For simplicity here, we'll just translate the whole block as synopsis usually fits.
+            synopsis_es = translator.translate(synopsis_en)
+            result_data["sinopsis_es"] = synopsis_es
+        except Exception as e:
+            print(f"Translation error (synopsis): {e}")
+            result_data["sinopsis_es"] = synopsis_en # Fallback to English
 
     return result_data

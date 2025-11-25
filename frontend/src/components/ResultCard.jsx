@@ -88,7 +88,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                     <div className="bg-cyber-black/50 rounded-xl p-6 border border-cyber-gray/50 flex-grow backdrop-blur-sm">
                         <h3 className="text-cyber-primary text-xs font-mono mb-2 uppercase tracking-widest">{t.synopsis}</h3>
                         <div className="text-gray-300 leading-relaxed max-h-64 overflow-y-auto pr-2 text-sm md:text-base scrollbar-thin scrollbar-thumb-cyber-primary scrollbar-track-cyber-black">
-                            {sinopsis || t.noSynopsis}
+                            {language === 'es' ? (result.sinopsis_es || sinopsis || t.noSynopsis) : (result.sinopsis_en || sinopsis || t.noSynopsis)}
                         </div>
                     </div>
 
