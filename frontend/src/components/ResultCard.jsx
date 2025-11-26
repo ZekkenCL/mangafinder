@@ -36,7 +36,16 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                                 onClick={() => setSelectedImage(previewUrl)}
                             >
                                 <div className="w-24 h-36 rounded-lg overflow-hidden border-2 border-cyber-gray shadow-lg group-hover:border-cyber-primary transition-colors">
-                                    <img src={previewUrl} alt="Upload" className="w-full h-full object-cover" />
+                                    <img
+                                        src={previewUrl}
+                                        alt="Upload"
+                                        className="w-full h-full object-cover"
+                                        onError={(e) => {
+                                            console.error("Error loading preview image:", previewUrl);
+                                            e.target.style.display = 'none';
+                                        }}
+                                        onLoad={() => console.log("Preview image loaded successfully:", previewUrl)}
+                                    />
                                 </div>
                                 <div className="absolute -bottom-6 left-0 w-full text-center">
                                     <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest group-hover:text-cyber-primary transition-colors">UPLOAD</span>
@@ -117,6 +126,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                                 {language === 'es' ? (result.sinopsis_es || sinopsis || t.noSynopsis) : (result.sinopsis_en || sinopsis || t.noSynopsis)}
                             </div>
                         </div>
+
 
                         {warning && (
                             <div className="mt-4 px-4 py-2 bg-yellow-500/10 border border-yellow-500/50 text-yellow-200 text-xs font-mono rounded flex items-center gap-2">

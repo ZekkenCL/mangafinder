@@ -16,7 +16,11 @@ def fetch_manga_details(title: str) -> dict:
         "portada_url": None,
         "autores": [],
         "otras_obras": [],
-        "external_links": []
+        "external_links": [],
+        "chapters": None,
+        "status": None,
+        "published": None,
+        "related_manga": []
     }
     
     if not title:
@@ -30,9 +34,46 @@ def fetch_manga_details(title: str) -> dict:
         if j_resp.status_code == 200:
             j_data = j_resp.json()
             if j_data.get("data"):
-                manga_info = j_data["data"][0]
-                details["sinopsis"] = manga_info.get("synopsis")
+                # 1. Get Basic Info from Search
+                search_result = j_data["data"][0]
+                mal_id = search_result.get("mal_id")
                 
+                # 2. Fetch Full Details if ID exists
+                manga_info = search_result # Default to search result
+                if mal_id:
+                    try:
+                        full_url = f"https://api.jikan.moe/v4/manga/{mal_id}/full"
+                        full_resp = requests.get(full_url)
+                        if full_resp.status_code == 200:
+                            full_data = full_resp.json()
+                            if full_data.get("data"):
+                                manga_info = full_data["data"]
+                    except Exception as e:
+                        print(f"Error fetching full details: {e}")
+
+                details["sinopsis"] = manga_info.get("synopsis")
+                details["chapters"] = manga_info.get("chapters")
+                details["status"] = manga_info.get("status")
+                details["published"] = manga_info.get("published", {}).get("string")
+                details["score"] = manga_info.get("score")
+                
+                # Extract Relations (Prequel/Sequel/Spin-Off/etc)
+                relations = manga_info.get("relations", [])
+                related_manga_list = []
+                allowed_relations = ["Prequel", "Sequel", "Spin-Off", "Side Story", "Parent Story", "Alternative Setting", "Alternative Version"]
+                
+                for rel in relations:
+                    relation_type = rel.get("relation")
+                    if relation_type in allowed_relations:
+                        for entry in rel.get("entry", []):
+                            if entry.get("type") == "manga":
+                                related_manga_list.append(RelatedWork(
+                                    title=entry.get("name"),
+                                    url=entry.get("url"),
+                                    relation_type=relation_type
+                                ))
+                details["related_manga"] = related_manga_list
+
                 # Prefer Jikan cover if available as it might be higher res/official
                 images = manga_info.get("images", {}).get("jpg", {})
                 large_image = images.get("large_image_url")

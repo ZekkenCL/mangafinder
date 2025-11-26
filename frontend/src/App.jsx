@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DropZone from './components/DropZone';
 import ResultCard from './components/ResultCard';
+import DetailsCard from './components/DetailsCard';
 import AuthorCard from './components/AuthorCard';
 import RelatedWorksCard from './components/RelatedWorksCard';
 import SourcesCard from './components/SourcesCard';
@@ -362,6 +363,8 @@ function App() {
           ) : (
             <>
               <ResultCard result={result} onReset={handleReset} language={language} previewUrl={previewUrl} />
+
+              <DetailsCard result={result} language={language} />
               {/* ... rest of result view */}
 
 

@@ -68,6 +68,16 @@ async def search_manga(
                 result_data.otras_obras = details["otras_obras"]
             if details["external_links"]:
                 result_data.external_links = details["external_links"]
+            if details["chapters"]:
+                result_data.chapters = details["chapters"]
+            if details["status"]:
+                result_data.status = details["status"]
+            if details["published"]:
+                result_data.published = details["published"]
+            if details["score"]:
+                result_data.score = details["score"]
+            if details["related_manga"]:
+                result_data.related_manga = details["related_manga"]
 
         # Fallback: If no authors found via Jikan (or Jikan skipped), use SauceNAO author
         if not result_data.autores and saucenao_author:
@@ -116,6 +126,11 @@ async def get_manga_details(
     result_data.autores = details["autores"]
     result_data.otras_obras = details["otras_obras"]
     result_data.external_links = details["external_links"]
+    result_data.chapters = details["chapters"]
+    result_data.status = details["status"]
+    result_data.published = details["published"]
+    result_data.score = details["score"]
+    result_data.related_manga = details["related_manga"]
 
     # Translate Synopsis
     result_data.sinopsis_en = result_data.sinopsis
