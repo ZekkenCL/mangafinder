@@ -52,6 +52,10 @@ async def search_manga(
         # Construct initial result object
         result_data = MangaSearchResult(**saucenao_result)
         
+        # Ensure match_image_url is populated from SauceNAO result
+        if saucenao_result.get("portada_url"):
+             result_data.match_image_url = saucenao_result.get("portada_url")
+        
         # 2. Search Jikan (only if we have a valid title)
         title = result_data.titulo
         saucenao_author = saucenao_result.get("saucenao_author")

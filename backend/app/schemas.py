@@ -44,3 +44,4 @@ class MangaSearchResult(BaseModel):
     score: Optional[float] = None
     related_manga: List[RelatedWork] = []
     otras_coincidencias: List[OtherMatch] = []
+    match_image_url: Optional[str] = None
