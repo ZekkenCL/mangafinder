@@ -63,6 +63,44 @@ function App() {
     setPreviewUrl(null);
   };
 
+  const handleSelectMatch = async (match) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append('title', match.titulo);
+
+      const response = await axios.post('http://localhost:8000/details', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      // Merge the new details with the existing result, but keep the original alternatives
+      setResult(prev => ({
+        ...prev,
+        ...response.data,
+        // Preserve the original list of matches, but maybe highlight the selected one?
+        // For now, just keeping them is enough.
+        otras_coincidencias: prev.otras_coincidencias,
+        // Update the match image url to the selected one's cover if available, 
+        // or keep the original if it's a specific panel match.
+        // Actually, for a general title match, we probably want to show the cover.
+        match_image_url: match.portada_url
+      }));
+
+      // Scroll to top to see the new result
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    } catch (err) {
+      console.error(err);
+      setError(t.error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-cyber-black text-white font-sans selection:bg-cyber-secondary selection:text-white overflow-x-hidden relative">
       {/* Background Grid Animation */}
@@ -138,7 +176,11 @@ function App() {
               )}
 
               {result.otras_coincidencias && (
-                <OtherMatches matches={result.otras_coincidencias} language={language} />
+                <OtherMatches
+                  matches={result.otras_coincidencias}
+                  language={language}
+                  onSelect={handleSelectMatch}
+                />
               )}
             </>
           )}

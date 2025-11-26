@@ -59,6 +59,88 @@ class MangaSearchResult(BaseModel):
 
 # -----------------------
 
+
+# --- Helper Functions ---
+
+def fetch_manga_details(title: str) -> dict:
+    """
+    Fetches manga details from Jikan API based on title.
+    Returns a dictionary with keys: sinopsis, portada_url, autores, otras_obras
+    """
+    details = {
+        "sinopsis": None,
+        "portada_url": None,
+        "autores": [],
+        "otras_obras": []
+    }
+    
+    if not title:
+        return details
+
+    jikan_url = f"https://api.jikan.moe/v4/manga"
+    jikan_params = {"q": title, "limit": 1}
+    
+    try:
+        j_resp = requests.get(jikan_url, params=jikan_params)
+        if j_resp.status_code == 200:
+            j_data = j_resp.json()
+            if j_data.get("data"):
+                manga_info = j_data["data"][0]
+                details["sinopsis"] = manga_info.get("synopsis")
+                
+                # Prefer Jikan cover if available as it might be higher res/official
+                images = manga_info.get("images", {}).get("jpg", {})
+                large_image = images.get("large_image_url")
+                if large_image:
+                    details["portada_url"] = large_image
+                elif images.get("image_url"):
+                    details["portada_url"] = images.get("image_url")
+
+                # Extract Authors
+                authors = manga_info.get("authors", [])
+                # Initialize authors list with basic info
+                authors_data = [Author(name=a.get("name"), url=a.get("url"), mal_id=a.get("mal_id")) for a in authors]
+
+                # Fetch Related Works (for the first author found) AND Author Image
+                if authors:
+                    first_author_id = authors[0].get("mal_id")
+                    if first_author_id:
+                        try:
+                            # Fetch Author Details for Image
+                            author_details_url = f"https://api.jikan.moe/v4/people/{first_author_id}"
+                            ad_resp = requests.get(author_details_url)
+                            if ad_resp.status_code == 200:
+                                ad_data = ad_resp.json().get("data", {})
+                                # Update the first author in our list with the image
+                                authors_data[0].image_url = ad_data.get("images", {}).get("jpg", {}).get("image_url")
+
+                            # Fetch Related Works
+                            author_works_url = f"https://api.jikan.moe/v4/people/{first_author_id}/manga"
+                            a_resp = requests.get(author_works_url, params={"limit": 5}) # Top 5 works
+                            if a_resp.status_code == 200:
+                                a_data = a_resp.json()
+                                related_works = []
+                                for work in a_data.get("data", []):
+                                    # Skip the current manga if possible, but simple check is enough
+                                    work_entry = work.get("manga", {})
+                                    related_works.append(RelatedWork(
+                                        title=work_entry.get("title"),
+                                        image_url=work_entry.get("images", {}).get("jpg", {}).get("image_url"),
+                                        url=work_entry.get("url")
+                                    ))
+                                details["otras_obras"] = related_works
+                        except Exception as e:
+                            print(f"Error fetching author details/works: {e}")
+                
+                details["autores"] = authors_data
+
+    except Exception as e:
+        print(f"Jikan API error: {e}")
+        
+    return details
+
+# -----------------------
+
 @app.post("/search", response_model=MangaSearchResult)
 async def search_manga(
     file: UploadFile = File(...), 
@@ -185,65 +267,15 @@ async def search_manga(
         
     # 2. Search Jikan (only if we have a valid title)
     if title:
-        jikan_url = f"https://api.jikan.moe/v4/manga"
-        jikan_params = {"q": title, "limit": 1}
-        try:
-            j_resp = requests.get(jikan_url, params=jikan_params)
-            if j_resp.status_code == 200:
-                j_data = j_resp.json()
-                if j_data.get("data"):
-                    manga_info = j_data["data"][0]
-                    result_data.sinopsis = manga_info.get("synopsis")
-                    
-                    # Prefer Jikan cover if available as it might be higher res/official
-                    images = manga_info.get("images", {}).get("jpg", {})
-                    large_image = images.get("large_image_url")
-                    if large_image:
-                        result_data.portada_url = large_image
-                    elif images.get("image_url"):
-                        result_data.portada_url = images.get("image_url")
-
-                    # Extract Authors
-                    authors = manga_info.get("authors", [])
-                    # Initialize authors list with basic info
-                    authors_data = [Author(name=a.get("name"), url=a.get("url"), mal_id=a.get("mal_id")) for a in authors]
-
-                    # Fetch Related Works (for the first author found) AND Author Image
-                    if authors:
-                        first_author_id = authors[0].get("mal_id")
-                        if first_author_id:
-                            try:
-                                # Fetch Author Details for Image
-                                author_details_url = f"https://api.jikan.moe/v4/people/{first_author_id}"
-                                ad_resp = requests.get(author_details_url)
-                                if ad_resp.status_code == 200:
-                                    ad_data = ad_resp.json().get("data", {})
-                                    # Update the first author in our list with the image
-                                    authors_data[0].image_url = ad_data.get("images", {}).get("jpg", {}).get("image_url")
-
-                                # Fetch Related Works
-                                author_works_url = f"https://api.jikan.moe/v4/people/{first_author_id}/manga"
-                                a_resp = requests.get(author_works_url, params={"limit": 5}) # Top 5 works
-                                if a_resp.status_code == 200:
-                                    a_data = a_resp.json()
-                                    related_works = []
-                                    for work in a_data.get("data", []):
-                                        # Skip the current manga if possible, but simple check is enough
-                                        work_entry = work.get("manga", {})
-                                        related_works.append(RelatedWork(
-                                            title=work_entry.get("title"),
-                                            image_url=work_entry.get("images", {}).get("jpg", {}).get("image_url"),
-                                            url=work_entry.get("url")
-                                        ))
-                                    result_data.otras_obras = related_works
-                            except Exception as e:
-                                print(f"Error fetching author details/works: {e}")
-                    
-                    result_data.autores = authors_data
-
-        except Exception as e:
-            print(f"Jikan API error: {e}")
-            # Don't fail the whole request if Jikan fails
+        details = fetch_manga_details(title)
+        if details["sinopsis"]:
+            result_data.sinopsis = details["sinopsis"]
+        if details["portada_url"]:
+            result_data.portada_url = details["portada_url"]
+        if details["autores"]:
+            result_data.autores = details["autores"]
+        if details["otras_obras"]:
+            result_data.otras_obras = details["otras_obras"]
 
     # Fallback: If no authors found via Jikan (or Jikan skipped), use SauceNAO author
     if not result_data.autores and saucenao_author:
@@ -272,4 +304,43 @@ async def search_manga(
             result_data.sinopsis_es = synopsis_en # Fallback to English
 
     return result_data
+
+@app.post("/details", response_model=MangaSearchResult)
+async def get_manga_details(
+    title: str = Form(...),
+):
+    """
+    Endpoint to fetch full details for a specific manga title.
+    Used when selecting an alternative match.
+    """
+    # Initialize basic result
+    result_data = MangaSearchResult(
+        found=True,
+        titulo=title,
+        otras_coincidencias=[] # We don't need to fetch alternatives again
+    )
+
+    # Fetch details from Jikan
+    details = fetch_manga_details(title)
+    
+    result_data.sinopsis = details["sinopsis"]
+    result_data.portada_url = details["portada_url"]
+    result_data.autores = details["autores"]
+    result_data.otras_obras = details["otras_obras"]
+
+    # Translate Synopsis
+    synopsis_en = result_data.sinopsis
+    
+    if synopsis_en:
+        result_data.sinopsis_en = synopsis_en
+        try:
+            translator = GoogleTranslator(source='auto', target='es')
+            synopsis_es = translator.translate(synopsis_en)
+            result_data.sinopsis_es = synopsis_es
+        except Exception as e:
+            print(f"Translation error (synopsis): {e}")
+            result_data.sinopsis_es = synopsis_en
+
+    return result_data
+
 

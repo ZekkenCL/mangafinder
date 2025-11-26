@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { translations } from '../utils/translations';
 
-const OtherMatches = ({ matches, language }) => {
+const OtherMatches = ({ matches, language, onSelect }) => {
     const t = translations[language];
 
     if (!matches || matches.length === 0) return null;
@@ -26,7 +26,8 @@ const OtherMatches = ({ matches, language }) => {
                 {matches.map((match, index) => (
                     <div
                         key={index}
-                        className="bg-cyber-dark border border-cyber-gray rounded-xl overflow-hidden hover:border-cyber-primary transition-all group"
+                        onClick={() => onSelect(match)}
+                        className="bg-cyber-dark border border-cyber-gray rounded-xl overflow-hidden hover:border-cyber-primary transition-all group cursor-pointer"
                     >
                         <div className="relative aspect-[2/3] overflow-hidden">
                             <img
