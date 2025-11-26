@@ -5,6 +5,7 @@ import ResultCard from './components/ResultCard';
 import AuthorCard from './components/AuthorCard';
 import RelatedWorksCard from './components/RelatedWorksCard';
 import OtherMatches from './components/OtherMatches';
+import History from './components/History';
 import { translations } from './utils/translations';
 
 function App() {
@@ -14,6 +15,25 @@ function App() {
   const [language, setLanguage] = useState('en');
   const [previewUrl, setPreviewUrl] = useState(null);
   const [nsfw, setNsfw] = useState(false);
+  const [history, setHistory] = useState([]);
+
+  React.useEffect(() => {
+    const savedHistory = localStorage.getItem('manga_history');
+    if (savedHistory) {
+      setHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  const addToHistory = (item) => {
+    const newItem = { ...item, timestamp: Date.now() };
+    setHistory(prev => {
+      // Remove duplicates based on title
+      const filtered = prev.filter(h => h.titulo !== item.titulo);
+      const newHistory = [newItem, ...filtered].slice(0, 5);
+      localStorage.setItem('manga_history', JSON.stringify(newHistory));
+      return newHistory;
+    });
+  };
 
   const t = translations[language];
 
@@ -48,7 +68,14 @@ function App() {
       });
       console.log("DEBUG: Backend Response Data:", response.data);
       console.log("DEBUG: match_image_url:", response.data.match_image_url);
-      setResult(response.data);
+
+      if (!response.data.found) {
+        setError(response.data.message || t.warning);
+        setResult(null);
+      } else {
+        setResult(response.data);
+        addToHistory(response.data);
+      }
     } catch (err) {
       console.error(err);
       setError(t.error);
@@ -89,6 +116,8 @@ function App() {
         // Actually, for a general title match, we probably want to show the cover.
         match_image_url: match.portada_url
       }));
+
+      addToHistory({ ...response.data, portada_url: match.portada_url });
 
       // Scroll to top to see the new result
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -158,7 +187,10 @@ function App() {
           )}
 
           {!result ? (
-            <DropZone onFileSelected={handleFileSelect} isLoading={loading} language={language} />
+            <>
+              <DropZone onFileSelected={handleFileSelect} isLoading={loading} language={language} />
+              <History history={history} onSelect={handleSelectMatch} language={language} />
+            </>
           ) : (
             <>
               <ResultCard result={result} onReset={handleReset} language={language} previewUrl={previewUrl} />

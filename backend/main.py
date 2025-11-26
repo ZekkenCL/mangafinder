@@ -165,7 +165,7 @@ async def search_manga(
         "db": 999,
         "output_type": 2,
         "testmode": 1,
-        "numres": 6, # Increased to get alternatives
+        "numres": 12, # Increased to ensure we have enough matches after filtering
         "hide": hide_value,
         "api_key": SAUCENAO_API_KEY,
     }
@@ -179,8 +179,29 @@ async def search_manga(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error contacting SauceNAO: {str(e)}")
 
-    results = data.get("results", [])
+    raw_results = data.get("results", [])
+    
+    # --- Manga Filter ---
+    # Allowed Index IDs for Manga/Doujinshi
+    # 3: DoujinshiDB
+    # 18: H-Misc (nhentai etc)
+    # 38: H-Misc (nhentai etc)
+    # 27: H-Magazines
+    # 37: MangaDex
+    # 44: MangaDex
+    # 51: Madokami (Manga)
+    # 52: Madokami (Manga)
+    MANGA_INDEX_IDS = {3, 18, 38, 27, 37, 44, 51, 52}
+    
+    # Filter results to only include those in the allowed indices
+    results = [r for r in raw_results if r.get("header", {}).get("index_id") in MANGA_INDEX_IDS]
+    
+    print(f"DEBUG: Raw results: {len(raw_results)}, Filtered results: {len(results)}")
+
     if not results:
+        # If we filtered everything out, check if we had raw results (meaning they were likely illustrations)
+        if raw_results:
+             return MangaSearchResult(found=False, message="No manga matches found (illustrations excluded)")
         return MangaSearchResult(found=False, message="No matches found")
 
     best_match = results[0]
