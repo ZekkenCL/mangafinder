@@ -46,6 +46,8 @@ function App() {
           'Content-Type': 'multipart/form-data',
         },
       });
+      console.log("DEBUG: Backend Response Data:", response.data);
+      console.log("DEBUG: match_image_url:", response.data.match_image_url);
       setResult(response.data);
     } catch (err) {
       console.error(err);

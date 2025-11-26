@@ -25,22 +25,36 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyber-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
 
             {/* Match Header - Compact Comparison */}
-            <div className="bg-black/40 border-b border-cyber-gray p-4 flex items-center justify-between backdrop-blur-sm">
-                <div className="flex items-center gap-4">
+            <div className="bg-black/40 border-b border-cyber-gray p-4 pb-10 flex items-center justify-between backdrop-blur-sm">
+                <div className="flex items-center gap-6">
                     {previewUrl && (
-                        <div className="flex items-center gap-2">
-                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-cyber-gray">
+                        <div className="relative group">
+                            <div className="w-24 h-36 rounded-lg overflow-hidden border-2 border-cyber-gray shadow-lg">
                                 <img src={previewUrl} alt="Upload" className="w-full h-full object-cover" />
                             </div>
-                            <span className="text-xs text-gray-500 font-mono">VS</span>
+                            <div className="absolute -bottom-6 left-0 w-full text-center">
+                                <span className="text-[10px] text-gray-400 uppercase tracking-widest">UPLOAD</span>
+                            </div>
                         </div>
                     )}
-                    <div className="flex flex-col">
-                        <span className={`text-2xl font-black font-mono ${similarity_confidence > 80 ? 'text-cyber-primary' : 'text-yellow-500'}`}>
+
+                    <div className="flex flex-col items-center gap-1">
+                        <span className="text-xl font-black text-cyber-primary italic">VS</span>
+                        <span className={`text-xs font-mono font-bold ${similarity_confidence > 80 ? 'text-green-400' : 'text-yellow-500'}`}>
                             {similarity_confidence}%
                         </span>
-                        <span className="text-[10px] text-gray-400 uppercase tracking-widest">{t.match}</span>
                     </div>
+
+                    {result.match_image_url && (
+                        <div className="relative group">
+                            <div className="w-24 h-36 rounded-lg overflow-hidden border-2 border-cyber-primary shadow-[0_0_15px_rgba(0,243,255,0.3)]">
+                                <img src={result.match_image_url} alt="Match" className="w-full h-full object-cover" />
+                            </div>
+                            <div className="absolute -bottom-6 left-0 w-full text-center">
+                                <span className="text-[10px] text-cyber-primary uppercase tracking-widest">MATCH</span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <button

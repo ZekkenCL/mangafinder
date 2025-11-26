@@ -1,7 +1,9 @@
 import os
 import requests
+from typing import List, Optional
 from fastapi import FastAPI, UploadFile, File, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from dotenv import load_dotenv
 from deep_translator import GoogleTranslator
 
@@ -20,7 +22,44 @@ app.add_middleware(
 
 SAUCENAO_API_KEY = os.getenv("SAUCENAO_API_KEY")
 
-@app.post("/search")
+# --- Pydantic Models ---
+
+class Author(BaseModel):
+    name: Optional[str] = None
+    url: Optional[str] = None
+    mal_id: Optional[int] = None
+    image_url: Optional[str] = None
+
+class RelatedWork(BaseModel):
+    title: Optional[str] = None
+    image_url: Optional[str] = None
+    url: Optional[str] = None
+
+class OtherMatch(BaseModel):
+    titulo: Optional[str] = None
+    similarity: float
+    portada_url: Optional[str] = None
+
+class MangaSearchResult(BaseModel):
+    found: bool
+    similarity_confidence: float = 0.0
+    titulo: Optional[str] = None
+    capitulo_estimado: Optional[str] = None
+    pagina_estimada: Optional[str] = None
+    sinopsis: Optional[str] = None
+    sinopsis_en: Optional[str] = None
+    sinopsis_es: Optional[str] = None
+    portada_url: Optional[str] = None
+    match_image_url: Optional[str] = None
+    otras_coincidencias: List[OtherMatch] = []
+    autores: List[Author] = []
+    otras_obras: List[RelatedWork] = []
+    warning: Optional[str] = None
+    message: Optional[str] = None
+
+# -----------------------
+
+@app.post("/search", response_model=MangaSearchResult)
 async def search_manga(
     file: UploadFile = File(...), 
     lang: str = Form("en"),
@@ -60,7 +99,7 @@ async def search_manga(
 
     results = data.get("results", [])
     if not results:
-        return {"found": False, "message": "No matches found"}
+        return MangaSearchResult(found=False, message="No matches found")
 
     best_match = results[0]
     header = best_match.get("header", {})
@@ -92,22 +131,24 @@ async def search_manga(
 
     # Extract chapter/page if available
     part = data_content.get("part", "")
-    est_chapter = None
-    est_page = None
     
-    # Very basic parsing for part, can be improved based on SauceNAO response format
-    # Often looks like "Chapter 123" or "Vol 1" etc.
+    # Debug: Log the thumbnail found in header
+    print(f"DEBUG: SauceNAO Header Thumbnail: {header.get('thumbnail')}")
+
+    # Initialize result object
+    result_data = MangaSearchResult(
+        found=True,
+        similarity_confidence=similarity,
+        titulo=title,
+        capitulo_estimado=part,
+        pagina_estimada=None,
+        sinopsis=None,
+        portada_url=header.get("thumbnail"),
+        match_image_url=header.get("thumbnail"), # Preserve the specific matching panel
+        otras_coincidencias=[]
+    )
     
-    result_data = {
-        "found": True,
-        "similarity_confidence": similarity,
-        "titulo": title,
-        "capitulo_estimado": part, # Keeping it raw for now as requested "datos de part"
-        "pagina_estimada": None, # SauceNAO doesn't always give page number reliably in a standard field
-        "sinopsis": None,
-        "portada_url": header.get("thumbnail"),
-        "otras_coincidencias": []
-    }
+    print(f"DEBUG: result_data match_image_url: {result_data.match_image_url}")
 
     # Process Alternative Matches
     if len(results) > 1:
@@ -126,23 +167,21 @@ async def search_manga(
 
             if m_similarity > 40: # Filter out very low quality matches
                 m_title = m_data.get("eng_name") or m_data.get("jp_name") or m_data.get("title") or m_data.get("material")
-                if not m_title:
-                     m_source = m_data.get("source")
-                     if m_source and not m_source.startswith("http"):
-                         m_title = m_source
+                m_source = m_data.get("source")
+                if m_source and not m_source.startswith("http"):
+                    m_title = m_source
                 if not m_title:
                     m_title = m_header.get("index_name", "").split(":")[0]
                 
-                other_matches.append({
-                    "titulo": m_title,
-                    "similarity": m_similarity,
-                    "portada_url": m_header.get("thumbnail"),
-                    # We could add more info if needed
-                })
-        result_data["otras_coincidencias"] = other_matches
+                other_matches.append(OtherMatch(
+                    titulo=m_title,
+                    similarity=m_similarity,
+                    portada_url=m_header.get("thumbnail")
+                ))
+        result_data.otras_coincidencias = other_matches
 
     if similarity < 60:
-        result_data["warning"] = "No se encontró una coincidencia exacta"
+        result_data.warning = "No se encontró una coincidencia exacta"
         
     # 2. Search Jikan (only if we have a valid title)
     if title:
@@ -154,20 +193,20 @@ async def search_manga(
                 j_data = j_resp.json()
                 if j_data.get("data"):
                     manga_info = j_data["data"][0]
-                    result_data["sinopsis"] = manga_info.get("synopsis")
+                    result_data.sinopsis = manga_info.get("synopsis")
                     
                     # Prefer Jikan cover if available as it might be higher res/official
                     images = manga_info.get("images", {}).get("jpg", {})
                     large_image = images.get("large_image_url")
                     if large_image:
-                        result_data["portada_url"] = large_image
+                        result_data.portada_url = large_image
                     elif images.get("image_url"):
-                        result_data["portada_url"] = images.get("image_url")
+                        result_data.portada_url = images.get("image_url")
 
                     # Extract Authors
                     authors = manga_info.get("authors", [])
                     # Initialize authors list with basic info
-                    authors_data = [{"name": a.get("name"), "url": a.get("url"), "mal_id": a.get("mal_id")} for a in authors]
+                    authors_data = [Author(name=a.get("name"), url=a.get("url"), mal_id=a.get("mal_id")) for a in authors]
 
                     # Fetch Related Works (for the first author found) AND Author Image
                     if authors:
@@ -180,7 +219,7 @@ async def search_manga(
                                 if ad_resp.status_code == 200:
                                     ad_data = ad_resp.json().get("data", {})
                                     # Update the first author in our list with the image
-                                    authors_data[0]["image_url"] = ad_data.get("images", {}).get("jpg", {}).get("image_url")
+                                    authors_data[0].image_url = ad_data.get("images", {}).get("jpg", {}).get("image_url")
 
                                 # Fetch Related Works
                                 author_works_url = f"https://api.jikan.moe/v4/people/{first_author_id}/manga"
@@ -191,45 +230,46 @@ async def search_manga(
                                     for work in a_data.get("data", []):
                                         # Skip the current manga if possible, but simple check is enough
                                         work_entry = work.get("manga", {})
-                                        related_works.append({
-                                            "title": work_entry.get("title"),
-                                            "image_url": work_entry.get("images", {}).get("jpg", {}).get("image_url"),
-                                            "url": work_entry.get("url")
-                                        })
-                                    result_data["otras_obras"] = related_works
+                                        related_works.append(RelatedWork(
+                                            title=work_entry.get("title"),
+                                            image_url=work_entry.get("images", {}).get("jpg", {}).get("image_url"),
+                                            url=work_entry.get("url")
+                                        ))
+                                    result_data.otras_obras = related_works
                             except Exception as e:
                                 print(f"Error fetching author details/works: {e}")
                     
-                    result_data["autores"] = authors_data
+                    result_data.autores = authors_data
 
         except Exception as e:
             print(f"Jikan API error: {e}")
             # Don't fail the whole request if Jikan fails
 
     # Fallback: If no authors found via Jikan (or Jikan skipped), use SauceNAO author
-    if not result_data.get("autores") and saucenao_author:
-        result_data["autores"] = [{
-            "name": saucenao_author,
-            "url": "", 
-            "mal_id": None,
-            "image_url": None 
-        }]
+    if not result_data.autores and saucenao_author:
+        result_data.autores = [Author(
+            name=saucenao_author,
+            url="", 
+            mal_id=None,
+            image_url=None 
+        )]
 
     # 3. Translate Synopsis
     # Always provide both English (original) and Spanish (translated) for dynamic switching
-    synopsis_en = result_data.get("sinopsis")
+    synopsis_en = result_data.sinopsis
     synopsis_es = None
 
     if synopsis_en:
-        result_data["sinopsis_en"] = synopsis_en
+        result_data.sinopsis_en = synopsis_en
         try:
             translator = GoogleTranslator(source='auto', target='es')
             # Split text if too long (Google Translate limit is usually 5000 chars, but good practice)
             # For simplicity here, we'll just translate the whole block as synopsis usually fits.
             synopsis_es = translator.translate(synopsis_en)
-            result_data["sinopsis_es"] = synopsis_es
+            result_data.sinopsis_es = synopsis_es
         except Exception as e:
             print(f"Translation error (synopsis): {e}")
-            result_data["sinopsis_es"] = synopsis_en # Fallback to English
+            result_data.sinopsis_es = synopsis_en # Fallback to English
 
     return result_data
+
