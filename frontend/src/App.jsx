@@ -1,23 +1,36 @@
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from 'react';
 import DropZone from './components/DropZone';
 import ResultCard from './components/ResultCard';
 import AuthorCard from './components/AuthorCard';
 import RelatedWorksCard from './components/RelatedWorksCard';
 import OtherMatches from './components/OtherMatches';
 import History from './components/History';
+import ImageCropper from './components/ImageCropper';
+import ImagePreview from './components/ImagePreview';
+import ResultSkeleton from './components/ResultSkeleton';
+import ConfirmationModal from './components/ConfirmationModal';
 import { translations } from './utils/translations';
+import { useSearchManga, useMangaDetails } from './hooks/useMangaSearch';
 
 function App() {
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
   const [language, setLanguage] = useState('en');
   const [previewUrl, setPreviewUrl] = useState(null);
   const [nsfw, setNsfw] = useState(false);
   const [history, setHistory] = useState([]);
 
-  React.useEffect(() => {
+  // Cropper State
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropperImageSrc, setCropperImageSrc] = useState(null);
+
+  // Confirmation Modal State
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
+  const searchMutation = useSearchManga();
+  const detailsMutation = useMangaDetails();
+
+  useEffect(() => {
     const savedHistory = localStorage.getItem('manga_history');
     if (savedHistory) {
       setHistory(JSON.parse(savedHistory));
@@ -27,7 +40,6 @@ function App() {
   const addToHistory = (item) => {
     const newItem = { ...item, timestamp: Date.now() };
     setHistory(prev => {
-      // Remove duplicates based on title
       const filtered = prev.filter(h => h.titulo !== item.titulo);
       const newHistory = [newItem, ...filtered].slice(0, 5);
       localStorage.setItem('manga_history', JSON.stringify(newHistory));
@@ -42,93 +54,132 @@ function App() {
   };
 
   const toggleNsfw = () => {
-    setNsfw(prev => !prev);
+    if (!nsfw) {
+      // If currently off, ask for confirmation to turn on
+      setShowConfirmation(true);
+    } else {
+      // If currently on, just turn off
+      setNsfw(false);
+    }
   };
 
-  const handleFileSelect = async (file) => {
-    setLoading(true);
-    setError(null);
-    setResult(null);
+  const confirmNsfw = () => {
+    setNsfw(true);
+    setShowConfirmation(false);
+  };
 
-    // Create preview URL
+  const onFileSelected = (file) => {
+    setSelectedFile(file);
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
+    setCropperImageSrc(objectUrl);
+    // Don't show cropper automatically anymore
+    // setShowCropper(true);
+  };
+
+  const handleSearch = () => {
+    if (!selectedFile) return;
+
+    setResult(null);
+
+    const formData = new FormData();
+    formData.append('file', selectedFile);
+    formData.append('lang', language);
+    formData.append('include_nsfw', nsfw);
+
+    searchMutation.mutate(formData, {
+      onSuccess: (data) => {
+        if (!data.found) {
+          setResult(null);
+        } else {
+          setResult(data);
+          addToHistory(data);
+        }
+      },
+      onError: (error) => {
+        console.error(error);
+      }
+    });
+  };
+
+  const handleManualCrop = () => {
+    setShowCropper(true);
+  };
+
+  const handleCancelSelection = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    setCropperImageSrc(null);
+    setResult(null);
+  };
+
+  const handleCropComplete = async (croppedBlob) => {
+    setShowCropper(false);
+
+    // Create a new File object from the blob
+    const file = new File([croppedBlob], "cropped.jpg", { type: "image/jpeg" });
+
+    // Set preview for the result
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
+    setSelectedFile(file); // Update selected file with cropped version
+
+    setResult(null);
 
     const formData = new FormData();
     formData.append('file', file);
     formData.append('lang', language);
     formData.append('include_nsfw', nsfw);
 
-    try {
-      // Assuming backend is running on localhost:8000
-      const response = await axios.post('http://localhost:8000/search', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      console.log("DEBUG: Backend Response Data:", response.data);
-      console.log("DEBUG: match_image_url:", response.data.match_image_url);
-
-      if (!response.data.found) {
-        setError(response.data.message || t.warning);
-        setResult(null);
-      } else {
-        setResult(response.data);
-        addToHistory(response.data);
+    searchMutation.mutate(formData, {
+      onSuccess: (data) => {
+        if (!data.found) {
+          setResult(null);
+        } else {
+          setResult(data);
+          addToHistory(data);
+        }
+      },
+      onError: (error) => {
+        console.error(error);
       }
-    } catch (err) {
-      console.error(err);
-      setError(t.error);
-    } finally {
-      setLoading(false);
-    }
+    });
+  };
+
+  const handleCancelCrop = () => {
+    setShowCropper(false);
+    // Don't clear selection on cancel crop, just close modal
   };
 
   const handleReset = () => {
     setResult(null);
-    setError(null);
     setPreviewUrl(null);
+    setSelectedFile(null);
+    setCropperImageSrc(null);
+    searchMutation.reset();
   };
 
-  const handleSelectMatch = async (match) => {
-    setLoading(true);
-    setError(null);
+  const handleSelectMatch = (match) => {
+    const formData = new FormData();
+    formData.append('title', match.titulo);
 
-    try {
-      const formData = new FormData();
-      formData.append('title', match.titulo);
-
-      const response = await axios.post('http://localhost:8000/details', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-
-      // Merge the new details with the existing result, but keep the original alternatives
-      setResult(prev => ({
-        ...prev,
-        ...response.data,
-        // Preserve the original list of matches, but maybe highlight the selected one?
-        // For now, just keeping them is enough.
-        otras_coincidencias: prev.otras_coincidencias,
-        // Update the match image url to the selected one's cover if available, 
-        // or keep the original if it's a specific panel match.
-        // Actually, for a general title match, we probably want to show the cover.
-        match_image_url: match.portada_url
-      }));
-
-      addToHistory({ ...response.data, portada_url: match.portada_url });
-
-      // Scroll to top to see the new result
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    } catch (err) {
-      console.error(err);
-      setError(t.error);
-    } finally {
-      setLoading(false);
-    }
+    detailsMutation.mutate(formData, {
+      onSuccess: (data) => {
+        setResult(prev => ({
+          ...prev,
+          ...data,
+          otras_coincidencias: prev.otras_coincidencias,
+          match_image_url: match.portada_url
+        }));
+        addToHistory({ ...data, portada_url: match.portada_url });
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    });
   };
+
+  const isLoading = searchMutation.isPending || detailsMutation.isPending;
+  const error = searchMutation.error || detailsMutation.error;
+  const errorMessage = error ? t.error : (result && !result.found ? (result.message || t.warning) : null);
 
   return (
     <div className="min-h-screen bg-cyber-black text-white font-sans selection:bg-cyber-secondary selection:text-white overflow-x-hidden relative">
@@ -137,6 +188,22 @@ function App() {
 
       {/* Ambient Glow */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-cyber-primary/10 blur-[100px] rounded-full pointer-events-none z-0"></div>
+
+      <ConfirmationModal
+        isOpen={showConfirmation}
+        onClose={() => setShowConfirmation(false)}
+        onConfirm={confirmNsfw}
+        title="Content Warning"
+        message="This action enables R18+ content. Are you sure you want to proceed? You must be 18 years or older."
+      />
+
+      {showCropper && cropperImageSrc && (
+        <ImageCropper
+          imageSrc={cropperImageSrc}
+          onCropComplete={handleCropComplete}
+          onCancel={handleCancelCrop}
+        />
+      )}
 
       <div className="relative z-10 container mx-auto px-4 py-8 flex flex-col items-center min-h-screen">
         {/* Header */}
@@ -180,20 +247,33 @@ function App() {
         </header>
 
         <main className="w-full flex flex-col items-center pb-20">
-          {error && (
+          {errorMessage && (
             <div className="mb-6 p-4 bg-red-900/30 border border-red-500 text-red-200 rounded-lg w-full max-w-2xl text-center">
-              {error}
+              {errorMessage}
             </div>
           )}
 
-          {!result ? (
-            <>
-              <DropZone onFileSelected={handleFileSelect} isLoading={loading} language={language} />
-              <History history={history} onSelect={handleSelectMatch} language={language} />
-            </>
+          {isLoading ? (
+            <ResultSkeleton />
+          ) : !result ? (
+            selectedFile && !showCropper ? (
+              <ImagePreview
+                imageSrc={previewUrl}
+                onSearch={handleSearch}
+                onCrop={handleManualCrop}
+                onCancel={handleCancelSelection}
+              />
+            ) : (
+              <>
+                <DropZone onFileSelected={onFileSelected} isLoading={isLoading} language={language} />
+                <History history={history} onSelect={handleSelectMatch} language={language} />
+              </>
+            )
           ) : (
             <>
               <ResultCard result={result} onReset={handleReset} language={language} previewUrl={previewUrl} />
+              {/* ... rest of result view */}
+
 
               {result.autores && (
                 <AuthorCard authors={result.autores} language={language} />
