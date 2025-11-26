@@ -181,9 +181,9 @@ function App() {
     detailsMutation.mutate(formData, {
       onSuccess: (data) => {
         setResult(prev => ({
-          ...prev,
+          ...(prev || {}),
           ...data,
-          otras_coincidencias: prev.otras_coincidencias,
+          otras_coincidencias: prev?.otras_coincidencias || data.otras_coincidencias,
           match_image_url: match.portada_url
         }));
         addToHistory({ ...data, portada_url: match.portada_url });
