@@ -3,6 +3,7 @@ import DropZone from './components/DropZone';
 import ResultCard from './components/ResultCard';
 import AuthorCard from './components/AuthorCard';
 import RelatedWorksCard from './components/RelatedWorksCard';
+import SourcesCard from './components/SourcesCard';
 import OtherMatches from './components/OtherMatches';
 import History from './components/History';
 import ImageCropper from './components/ImageCropper';
@@ -11,6 +12,7 @@ import ResultSkeleton from './components/ResultSkeleton';
 import ConfirmationModal from './components/ConfirmationModal';
 import { translations } from './utils/translations';
 import { useSearchManga, useMangaDetails } from './hooks/useMangaSearch';
+import ThemeToggle from './components/ThemeToggle';
 
 function App() {
   const [result, setResult] = useState(null);
@@ -182,12 +184,12 @@ function App() {
   const errorMessage = error ? t.error : (result && !result.found ? (result.message || t.warning) : null);
 
   return (
-    <div className="min-h-screen bg-cyber-black text-white font-sans selection:bg-cyber-secondary selection:text-white overflow-x-hidden relative">
-      {/* Background Grid Animation */}
-      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]"></div>
+    <div className="min-h-screen bg-gray-50 dark:bg-cyber-black text-gray-900 dark:text-white font-sans selection:bg-cyber-secondary selection:text-white overflow-x-hidden relative transition-colors duration-300">
+      {/* Background Grid Animation - Dark Mode Only */}
+      <div className="fixed inset-0 z-0 opacity-20 pointer-events-none bg-[linear-gradient(to_right,#1a1a1a_1px,transparent_1px),linear-gradient(to_bottom,#1a1a1a_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] hidden dark:block"></div>
 
-      {/* Ambient Glow */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-cyber-primary/10 blur-[100px] rounded-full pointer-events-none z-0"></div>
+      {/* Ambient Glow - Dark Mode Only */}
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-cyber-primary/10 blur-[100px] rounded-full pointer-events-none z-0 hidden dark:block"></div>
 
       <ConfirmationModal
         isOpen={showConfirmation}
@@ -211,7 +213,7 @@ function App() {
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-cyber-primary rounded-full animate-pulse shadow-[0_0_10px_#00f3ff]"></div>
             <h1 className="text-2xl md:text-3xl font-black tracking-tighter italic pr-4">
-              <span className="text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{t.title}</span>
+              <span className="text-gray-900 dark:text-white drop-shadow-[0_0_10px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]">{t.title}</span>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyber-primary to-cyber-secondary ml-1 pr-2">
                 {t.subtitle}
               </span>
@@ -235,7 +237,7 @@ function App() {
             {/* Language Switch */}
             <button
               onClick={toggleLanguage}
-              className="relative w-16 h-8 bg-cyber-black border border-cyber-gray rounded-full overflow-hidden group hover:border-cyber-primary transition-colors duration-300"
+              className="relative w-16 h-8 bg-gray-200 dark:bg-cyber-black border border-gray-300 dark:border-cyber-gray rounded-full overflow-hidden group hover:border-cyber-primary transition-colors duration-300"
             >
               <div className={`absolute top-0 bottom-0 w-1/2 bg-cyber-primary/20 transition-transform duration-300 ${language === 'es' ? 'translate-x-full' : 'translate-x-0'}`}></div>
               <div className="absolute inset-0 flex items-center justify-between px-2 text-[10px] font-bold font-mono">
@@ -243,6 +245,9 @@ function App() {
                 <span className={`z-10 transition-colors duration-300 ${language === 'es' ? 'text-cyber-primary' : 'text-gray-500'}`}>ES</span>
               </div>
             </button>
+
+            {/* Theme Toggle */}
+            <ThemeToggle />
           </div>
         </header>
 
@@ -286,6 +291,8 @@ function App() {
                   language={language}
                 />
               )}
+
+              <SourcesCard result={result} language={language} />
 
               {result.otras_coincidencias && (
                 <OtherMatches

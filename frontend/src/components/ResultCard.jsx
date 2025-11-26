@@ -21,14 +21,14 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-4xl bg-cyber-dark border border-cyber-gray rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] relative"
+                className="w-full max-w-4xl bg-white dark:bg-cyber-dark border border-gray-200 dark:border-cyber-gray rounded-2xl overflow-hidden shadow-xl dark:shadow-[0_0_50px_rgba(0,0,0,0.5)] relative"
             >
-                {/* Decorative Elements */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-cyber-primary/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyber-secondary/10 rounded-full blur-3xl pointer-events-none"></div>
+                {/* Decorative Elements - Dark Mode Only */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-cyber-primary/10 rounded-full blur-3xl pointer-events-none hidden dark:block"></div>
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyber-secondary/10 rounded-full blur-3xl pointer-events-none hidden dark:block"></div>
 
                 {/* Match Header - Compact Comparison */}
-                <div className="bg-black/40 border-b border-cyber-gray p-4 pb-10 flex items-center justify-center relative backdrop-blur-sm">
+                <div className="bg-gray-100/80 dark:bg-black/40 border-b border-gray-200 dark:border-cyber-gray p-4 pb-10 flex items-center justify-center relative backdrop-blur-sm">
                     <div className="flex items-center gap-6">
                         {previewUrl && (
                             <div
@@ -39,7 +39,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                                     <img src={previewUrl} alt="Upload" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="absolute -bottom-6 left-0 w-full text-center">
-                                    <span className="text-[10px] text-gray-400 uppercase tracking-widest group-hover:text-cyber-primary transition-colors">UPLOAD</span>
+                                    <span className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-widest group-hover:text-cyber-primary transition-colors">UPLOAD</span>
                                 </div>
                             </div>
                         )}
@@ -68,7 +68,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
 
                     <button
                         onClick={onReset}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 px-4 py-2 bg-cyber-black border border-cyber-gray hover:border-cyber-primary text-gray-300 hover:text-white text-xs font-mono tracking-widest transition-all rounded hover:shadow-[0_0_10px_rgba(0,243,255,0.2)]"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 px-4 py-2 bg-white dark:bg-cyber-black border border-gray-300 dark:border-cyber-gray hover:border-cyber-primary text-gray-600 dark:text-gray-300 hover:text-cyber-primary dark:hover:text-white text-xs font-mono tracking-widest transition-all rounded hover:shadow-md dark:hover:shadow-[0_0_10px_rgba(0,243,255,0.2)]"
                     >
                         {t.searchAgain}
                     </button>
@@ -78,7 +78,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                     {/* Main Cover Image */}
                     <div className="w-full md:w-1/3 flex-shrink-0 relative group">
                         <div
-                            className="relative rounded-xl overflow-hidden border-2 border-cyber-gray group-hover:border-cyber-primary transition-colors duration-300 shadow-2xl aspect-[2/3] cursor-pointer"
+                            className="relative rounded-xl overflow-hidden border-2 border-gray-200 dark:border-cyber-gray group-hover:border-cyber-primary transition-colors duration-300 shadow-2xl aspect-[2/3] cursor-pointer"
                             onClick={() => setSelectedImage(portada_url)}
                         >
                             <img
@@ -92,7 +92,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
 
                     {/* Content */}
                     <div className="flex-grow flex flex-col relative z-10">
-                        <h2 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight leading-none">
+                        <h2 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-2 tracking-tight leading-none">
                             {titulo || t.unknownTitle}
                         </h2>
 
@@ -111,9 +111,9 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                         </div>
 
                         {/* Synopsis */}
-                        <div className="bg-cyber-black/50 rounded-xl p-6 border border-cyber-gray/50 flex-grow backdrop-blur-sm">
+                        <div className="bg-gray-50 dark:bg-cyber-black/50 rounded-xl p-6 border border-gray-200 dark:border-cyber-gray/50 flex-grow backdrop-blur-sm">
                             <h3 className="text-cyber-primary text-xs font-mono mb-2 uppercase tracking-widest">{t.synopsis}</h3>
-                            <div className="text-gray-300 leading-relaxed max-h-64 overflow-y-auto pr-2 text-sm md:text-base scrollbar-thin scrollbar-thumb-cyber-primary scrollbar-track-cyber-black">
+                            <div className="text-gray-700 dark:text-gray-300 leading-relaxed max-h-64 overflow-y-auto pr-2 text-sm md:text-base scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-cyber-primary scrollbar-track-transparent dark:scrollbar-track-cyber-black">
                                 {language === 'es' ? (result.sinopsis_es || sinopsis || t.noSynopsis) : (result.sinopsis_en || sinopsis || t.noSynopsis)}
                             </div>
                         </div>

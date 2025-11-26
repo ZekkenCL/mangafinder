@@ -17,6 +17,10 @@ class OtherMatch(BaseModel):
     similarity: float
     portada_url: Optional[str] = None
 
+class ExternalLink(BaseModel):
+    name: Optional[str] = None
+    url: Optional[str] = None
+
 class MangaSearchResult(BaseModel):
     found: bool
     similarity_confidence: float = 0.0
@@ -31,5 +35,6 @@ class MangaSearchResult(BaseModel):
     otras_coincidencias: List[OtherMatch] = []
     autores: List[Author] = []
     otras_obras: List[RelatedWork] = []
+    external_links: List[ExternalLink] = []
     warning: Optional[str] = None
     message: Optional[str] = None

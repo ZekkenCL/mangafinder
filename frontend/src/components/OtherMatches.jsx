@@ -15,11 +15,11 @@ const OtherMatches = ({ matches, language, onSelect }) => {
             className="w-full max-w-4xl mt-12 mb-8"
         >
             <div className="flex items-center gap-4 mb-6">
-                <div className="h-px bg-cyber-gray flex-grow"></div>
-                <h3 className="text-gray-400 text-sm font-mono uppercase tracking-widest">
+                <div className="h-px bg-gray-300 dark:bg-cyber-gray flex-grow"></div>
+                <h3 className="text-gray-500 dark:text-gray-400 text-sm font-mono uppercase tracking-widest">
                     {t.notWhatYouLookingFor}
                 </h3>
-                <div className="h-px bg-cyber-gray flex-grow"></div>
+                <div className="h-px bg-gray-300 dark:bg-cyber-gray flex-grow"></div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -27,7 +27,7 @@ const OtherMatches = ({ matches, language, onSelect }) => {
                     <div
                         key={index}
                         onClick={() => onSelect(match)}
-                        className="bg-cyber-dark border border-cyber-gray rounded-xl overflow-hidden hover:border-cyber-primary transition-all group cursor-pointer"
+                        className="bg-white dark:bg-cyber-dark border border-gray-200 dark:border-cyber-gray rounded-xl overflow-hidden hover:border-cyber-primary transition-all group cursor-pointer shadow-sm dark:shadow-none"
                     >
                         <div className="relative aspect-[2/3] overflow-hidden">
                             <img
@@ -40,7 +40,7 @@ const OtherMatches = ({ matches, language, onSelect }) => {
                             </div>
                         </div>
                         <div className="p-3">
-                            <p className="text-sm font-bold text-white truncate group-hover:text-cyber-primary transition-colors">
+                            <p className="text-sm font-bold text-gray-900 dark:text-white truncate group-hover:text-cyber-primary transition-colors">
                                 {match.titulo}
                             </p>
                         </div>

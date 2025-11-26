@@ -1,0 +1,95 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { translations } from '../utils/translations';
+
+const SourcesCard = ({ result, language }) => {
+    const t = translations[language];
+
+    if (!result) return null;
+
+    const unofficialSources = [
+        { name: 'ZonaTMO', url: 'https://zonatmo.com/library' },
+        { name: 'MangaPlus', url: `https://mangaplus.shueisha.co.jp/search_result?keyword=${encodeURIComponent(result.titulo)}` },
+        { name: 'MangaDex', url: `https://mangadex.org/search?q=${encodeURIComponent(result.titulo)}` },
+        { name: 'Mangakatana', url: `https://mangakatana.com/?search=${encodeURIComponent(result.titulo)}&search_by=book_name` },
+    ];
+
+    const getFaviconUrl = (url) => {
+        try {
+            const domain = new URL(url).hostname;
+            return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`;
+        } catch (e) {
+            return null;
+        }
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="w-full max-w-4xl bg-white dark:bg-cyber-dark border border-gray-200 dark:border-cyber-gray rounded-2xl overflow-hidden shadow-lg mt-6 p-6 relative"
+        >
+            <div className="absolute top-0 left-0 w-1 h-full bg-cyber-primary"></div>
+
+            <h3 className="text-cyber-primary text-xs font-mono mb-6 uppercase tracking-widest flex items-center gap-2">
+                <span className="w-2 h-2 bg-cyber-primary rounded-full"></span>
+                {t.sources}
+            </h3>
+
+            {/* Official Sources */}
+            {result.external_links && result.external_links.length > 0 && (
+                <div className="mb-8">
+                    <h4 className="text-gray-500 dark:text-gray-400 text-xs font-mono mb-3 uppercase tracking-wider">{t.officialSources}</h4>
+                    <div className="flex flex-wrap gap-3">
+                        {result.external_links.map((link, index) => (
+                            <a
+                                key={index}
+                                href={link.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-primary hover:text-cyber-primary dark:hover:text-cyber-primary transition-all flex items-center gap-2 group"
+                            >
+                                <img
+                                    src={getFaviconUrl(link.url)}
+                                    alt=""
+                                    className="w-4 h-4 rounded-sm"
+                                    onError={(e) => e.target.style.display = 'none'}
+                                />
+                                {link.name}
+                                <span className="text-xs opacity-50 group-hover:opacity-100">↗</span>
+                            </a>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Unofficial Sources */}
+            <div>
+                <h4 className="text-gray-500 dark:text-gray-400 text-xs font-mono mb-3 uppercase tracking-wider">{t.unofficialSources}</h4>
+                <div className="flex flex-wrap gap-3">
+                    {unofficialSources.map((source, index) => (
+                        <a
+                            key={index}
+                            href={source.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-secondary hover:text-cyber-secondary dark:hover:text-cyber-secondary transition-all flex items-center gap-2 group"
+                        >
+                            <img
+                                src={getFaviconUrl(source.url)}
+                                alt=""
+                                className="w-4 h-4 rounded-sm"
+                                onError={(e) => e.target.style.display = 'none'}
+                            />
+                            {source.name}
+                            <span className="text-xs opacity-50 group-hover:opacity-100">↗</span>
+                        </a>
+                    ))}
+                </div>
+            </div>
+        </motion.div>
+    );
+};
+
+export default SourcesCard;

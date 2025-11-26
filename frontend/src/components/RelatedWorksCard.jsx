@@ -12,7 +12,7 @@ const RelatedWorksCard = ({ works, authorName, language }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="w-full max-w-4xl bg-cyber-dark border border-cyber-gray rounded-2xl overflow-hidden shadow-lg mt-6 p-6 relative"
+            className="w-full max-w-4xl bg-white dark:bg-cyber-dark border border-gray-200 dark:border-cyber-gray rounded-2xl overflow-hidden shadow-lg mt-6 p-6 relative"
         >
             <div className="absolute top-0 right-0 w-1 h-full bg-cyber-accent"></div>
 
@@ -21,7 +21,7 @@ const RelatedWorksCard = ({ works, authorName, language }) => {
                 <span className="w-2 h-2 bg-cyber-accent rounded-full"></span>
             </h3>
 
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-cyber-accent scrollbar-track-cyber-black">
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-cyber-accent scrollbar-track-transparent dark:scrollbar-track-cyber-black">
                 {works.map((work, index) => (
                     <a
                         key={index}
@@ -30,7 +30,7 @@ const RelatedWorksCard = ({ works, authorName, language }) => {
                         rel="noopener noreferrer"
                         className="flex-shrink-0 w-32 group"
                     >
-                        <div className="relative overflow-hidden rounded-lg aspect-[2/3] mb-2 border border-cyber-gray group-hover:border-cyber-accent transition-all">
+                        <div className="relative overflow-hidden rounded-lg aspect-[2/3] mb-2 border border-gray-300 dark:border-cyber-gray group-hover:border-cyber-accent transition-all">
                             <img
                                 src={work.image_url || 'https://placehold.co/200x300/1e1e1e/FFF?text=No+Image'}
                                 alt={work.title}
@@ -40,7 +40,7 @@ const RelatedWorksCard = ({ works, authorName, language }) => {
                                 <span className="text-xs text-cyber-accent font-mono">VIEW</span>
                             </div>
                         </div>
-                        <p className="text-xs text-gray-400 font-medium truncate group-hover:text-white transition-colors">
+                        <p className="text-xs text-gray-600 dark:text-gray-400 font-medium truncate group-hover:text-cyber-accent dark:group-hover:text-white transition-colors">
                             {work.title}
                         </p>
                     </a>

@@ -33,7 +33,7 @@ const DropZone = ({ onFileSelected, isLoading, language }) => {
         h-64 w-full max-w-2xl mx-auto
         ${isDragActive
                     ? 'border-cyber-primary bg-cyber-primary/10 shadow-neon-blue'
-                    : 'border-cyber-gray hover:border-cyber-primary/50 hover:bg-cyber-gray/30'}
+                    : 'border-gray-300 dark:border-cyber-gray hover:border-cyber-primary/50 hover:bg-gray-50 dark:hover:bg-cyber-gray/30'}
         ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}
       `}
         >
@@ -52,8 +52,8 @@ const DropZone = ({ onFileSelected, isLoading, language }) => {
                             <p className="text-cyber-primary font-bold text-lg">{t.dropActive}</p>
                         ) : (
                             <div className="space-y-2">
-                                <p className="text-xl font-bold text-white">{t.uploadTitle}</p>
-                                <p className="text-gray-400 text-sm">{t.uploadSubtitle}</p>
+                                <p className="text-xl font-bold text-gray-900 dark:text-white">{t.uploadTitle}</p>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm">{t.uploadSubtitle}</p>
                             </div>
                         )}
                     </>

@@ -23,7 +23,10 @@ export const translations = {
     otherMatches: "POSSIBLE MATCHES",
     nsfwLabel: "NSFW FILTER",
     nsfwOn: "SHOW ALL",
-    nsfwOff: "SAFE MODE"
+    nsfwOff: "SAFE MODE",
+    sources: "SOURCES",
+    officialSources: "OFFICIAL SOURCES",
+    unofficialSources: "UNOFFICIAL SOURCES"
   },
   es: {
     title: "MANGA",
@@ -49,6 +52,9 @@ export const translations = {
     otherMatches: "OTRAS COINCIDENCIAS",
     nsfwLabel: "FILTRO NSFW",
     nsfwOn: "MOSTRAR TODO",
-    nsfwOff: "MODO SEGURO"
+    nsfwOff: "MODO SEGURO",
+    sources: "FUENTES",
+    officialSources: "FUENTES OFICIALES",
+    unofficialSources: "FUENTES NO OFICIALES"
   }
 };

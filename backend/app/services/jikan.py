@@ -1,6 +1,6 @@
 import requests
 from cachetools import TTLCache, cached
-from ..schemas import Author, RelatedWork
+from ..schemas import Author, RelatedWork, ExternalLink
 
 # Cache for 1 hour, max 100 items
 cache = TTLCache(maxsize=100, ttl=3600)
@@ -9,13 +9,14 @@ cache = TTLCache(maxsize=100, ttl=3600)
 def fetch_manga_details(title: str) -> dict:
     """
     Fetches manga details from Jikan API based on title.
-    Returns a dictionary with keys: sinopsis, portada_url, autores, otras_obras
+    Returns a dictionary with keys: sinopsis, portada_url, autores, otras_obras, external_links
     """
     details = {
         "sinopsis": None,
         "portada_url": None,
         "autores": [],
-        "otras_obras": []
+        "otras_obras": [],
+        "external_links": []
     }
     
     if not title:
@@ -77,6 +78,10 @@ def fetch_manga_details(title: str) -> dict:
                             print(f"Error fetching author details/works: {e}")
                 
                 details["autores"] = authors_data
+
+                # Extract External Links
+                external = manga_info.get("external", [])
+                details["external_links"] = [ExternalLink(name=e.get("name"), url=e.get("url")) for e in external]
 
     except Exception as e:
         print(f"Jikan API error: {e}")

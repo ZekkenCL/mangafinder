@@ -14,11 +14,11 @@ const History = ({ history, onSelect, language }) => {
             className="w-full max-w-4xl mt-12"
         >
             <div className="flex items-center gap-4 mb-6">
-                <div className="h-px bg-cyber-gray flex-grow"></div>
-                <h3 className="text-gray-400 text-sm font-mono uppercase tracking-widest">
+                <div className="h-px bg-gray-300 dark:bg-cyber-gray flex-grow"></div>
+                <h3 className="text-gray-500 dark:text-gray-400 text-sm font-mono uppercase tracking-widest">
                     RECENT SEARCHES
                 </h3>
-                <div className="h-px bg-cyber-gray flex-grow"></div>
+                <div className="h-px bg-gray-300 dark:bg-cyber-gray flex-grow"></div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
@@ -26,7 +26,7 @@ const History = ({ history, onSelect, language }) => {
                     <div
                         key={index}
                         onClick={() => onSelect(item)}
-                        className="bg-cyber-dark border border-cyber-gray rounded-xl overflow-hidden hover:border-cyber-primary transition-all group cursor-pointer relative aspect-[2/3]"
+                        className="bg-white dark:bg-cyber-dark border border-gray-200 dark:border-cyber-gray rounded-xl overflow-hidden hover:border-cyber-primary transition-all group cursor-pointer relative aspect-[2/3] shadow-sm dark:shadow-none"
                     >
                         <img
                             src={item.portada_url || 'https://placehold.co/200x300/1e1e1e/FFF?text=No+Image'}
