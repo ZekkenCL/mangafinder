@@ -26,7 +26,8 @@ export const translations = {
     nsfwOff: "SAFE MODE",
     sources: "SOURCES",
     officialSources: "OFFICIAL SOURCES",
-    unofficialSources: "UNOFFICIAL SOURCES"
+    unofficialSources: "UNOFFICIAL SOURCES",
+    clearHistory: "CLEAR HISTORY"
   },
   es: {
     title: "MANGA",
@@ -55,6 +56,7 @@ export const translations = {
     nsfwOff: "MODO SEGURO",
     sources: "FUENTES",
     officialSources: "FUENTES OFICIALES",
-    unofficialSources: "FUENTES NO OFICIALES"
+    unofficialSources: "FUENTES NO OFICIALES",
+    clearHistory: "LIMPIAR HISTORIAL"
   }
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { translations } from '../utils/translations';
 
-const History = ({ history, onSelect, language }) => {
+const History = ({ history, onSelect, language, onClear, onRemove }) => {
     const t = translations[language];
 
     if (!history || history.length === 0) return null;
@@ -18,6 +18,12 @@ const History = ({ history, onSelect, language }) => {
                 <h3 className="text-gray-500 dark:text-gray-400 text-sm font-mono uppercase tracking-widest">
                     RECENT SEARCHES
                 </h3>
+                <button
+                    onClick={onClear}
+                    className="text-xs text-red-500 hover:text-red-400 font-mono font-bold uppercase tracking-wider transition-colors"
+                >
+                    {t.clearHistory}
+                </button>
                 <div className="h-px bg-gray-300 dark:bg-cyber-gray flex-grow"></div>
             </div>
 
@@ -34,13 +40,22 @@ const History = ({ history, onSelect, language }) => {
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-3">
-                            <p className="text-xs font-bold text-white truncate">
+                            <p className="text-xs font-bold text-white truncate pr-4">
                                 {item.titulo}
                             </p>
                             <p className="text-[10px] text-cyber-primary font-mono">
                                 {new Date(item.timestamp).toLocaleDateString()}
                             </p>
                         </div>
+                        <button
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onRemove(item);
+                            }}
+                            className="absolute top-2 right-2 w-6 h-6 bg-black/50 hover:bg-red-500/80 rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-all duration-300 z-10"
+                        >
+                            ✕
+                        </button>
                     </div>
                 ))}
             </div>

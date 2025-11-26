@@ -49,6 +49,19 @@ function App() {
     });
   };
 
+  const clearHistory = () => {
+    setHistory([]);
+    localStorage.removeItem('manga_history');
+  };
+
+  const removeFromHistory = (itemToRemove) => {
+    setHistory(prev => {
+      const newHistory = prev.filter(item => item.titulo !== itemToRemove.titulo);
+      localStorage.setItem('manga_history', JSON.stringify(newHistory));
+      return newHistory;
+    });
+  };
+
   const t = translations[language];
 
   const toggleLanguage = () => {
@@ -271,7 +284,13 @@ function App() {
             ) : (
               <>
                 <DropZone onFileSelected={onFileSelected} isLoading={isLoading} language={language} />
-                <History history={history} onSelect={handleSelectMatch} language={language} />
+                <History
+                  history={history}
+                  onSelect={handleSelectMatch}
+                  language={language}
+                  onClear={clearHistory}
+                  onRemove={removeFromHistory}
+                />
               </>
             )
           ) : (
