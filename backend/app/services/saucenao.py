@@ -31,8 +31,22 @@ async def search_saucenao(file: UploadFile, include_nsfw: bool) -> dict:
         response = requests.post(saucenao_url, params=params, files=files)
         response.raise_for_status()
         data = response.json()
+    except requests.exceptions.Timeout as e:
+        print(f"SauceNAO timeout error: {str(e)}")
+        raise HTTPException(status_code=504, detail="SauceNAO API timeout. Please try again.")
+    except requests.exceptions.ConnectionError as e:
+        print(f"SauceNAO connection error: {str(e)}")
+        raise HTTPException(status_code=503, detail="Cannot connect to SauceNAO API. Please try again later.")
+    except requests.exceptions.HTTPError as e:
+        print(f"SauceNAO HTTP error: {str(e)}")
+        if response.status_code == 429:
+            raise HTTPException(status_code=429, detail="Too many requests to SauceNAO. Please wait a moment and try again.")
+        raise HTTPException(status_code=500, detail=f"SauceNAO API error: {str(e)}")
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error contacting SauceNAO: {str(e)}")
+        print(f"Unexpected error contacting SauceNAO: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail="Failed to process image with SauceNAO. Please try again.")
 
     raw_results = data.get("results", [])
     

@@ -80,8 +80,17 @@ def fetch_manga_details(title: str) -> dict:
                 details["autores"] = authors_data
 
                 # Extract External Links
-                external = manga_info.get("external", [])
-                details["external_links"] = [ExternalLink(name=e.get("name"), url=e.get("url")) for e in external]
+                # Search result doesn't include external links, so we need to fetch them using the ID
+                mal_id = manga_info.get("mal_id")
+                if mal_id:
+                    try:
+                        ext_url = f"https://api.jikan.moe/v4/manga/{mal_id}/external"
+                        ext_resp = requests.get(ext_url)
+                        if ext_resp.status_code == 200:
+                            ext_data = ext_resp.json().get("data", [])
+                            details["external_links"] = [ExternalLink(name=e.get("name"), url=e.get("url")) for e in ext_data]
+                    except Exception as e:
+                        print(f"Error fetching external links: {e}")
 
     except Exception as e:
         print(f"Jikan API error: {e}")

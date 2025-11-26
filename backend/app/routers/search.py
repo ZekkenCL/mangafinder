@@ -22,46 +22,80 @@ async def search_manga(
     lang: str = Form("en"),
     include_nsfw: bool = Form(False)
 ):
-    # 1. Search SauceNAO
-    saucenao_result = await search_saucenao(file, include_nsfw)
+    # Validate file type
+    valid_content_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+    if file.content_type not in valid_content_types:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Invalid file type: {file.content_type}. Please upload a JPG, PNG, WEBP, or GIF image."
+        )
     
-    if not saucenao_result.get("found"):
-        return MangaSearchResult(**saucenao_result)
-
-    # Construct initial result object
-    result_data = MangaSearchResult(**saucenao_result)
+    # Validate file size (10MB limit)
+    max_size = 10 * 1024 * 1024  # 10MB
+    file_content = await file.read()
+    if len(file_content) > max_size:
+        raise HTTPException(
+            status_code=400,
+            detail="File is too large. Maximum size is 10MB."
+        )
     
-    # 2. Search Jikan (only if we have a valid title)
-    title = result_data.titulo
-    saucenao_author = saucenao_result.get("saucenao_author")
+    # Reset file pointer for later use
+    await file.seek(0)
     
-    if title:
-        details = fetch_manga_details(title)
-        if details["sinopsis"]:
-            result_data.sinopsis = details["sinopsis"]
-        if details["portada_url"]:
-            result_data.portada_url = details["portada_url"]
-        if details["autores"]:
-            result_data.autores = details["autores"]
-        if details["otras_obras"]:
-            result_data.otras_obras = details["otras_obras"]
-        if details["external_links"]:
-            result_data.external_links = details["external_links"]
+    try:
+        # 1. Search SauceNAO
+        saucenao_result = await search_saucenao(file, include_nsfw)
+        
+        if not saucenao_result.get("found"):
+            return MangaSearchResult(**saucenao_result)
 
-    # Fallback: If no authors found via Jikan (or Jikan skipped), use SauceNAO author
-    if not result_data.autores and saucenao_author:
-        result_data.autores = [Author(
-            name=saucenao_author,
-            url="", 
-            mal_id=None,
-            image_url=None 
-        )]
+        # Construct initial result object
+        result_data = MangaSearchResult(**saucenao_result)
+        
+        # 2. Search Jikan (only if we have a valid title)
+        title = result_data.titulo
+        saucenao_author = saucenao_result.get("saucenao_author")
+        
+        if title:
+            details = fetch_manga_details(title)
+            if details["sinopsis"]:
+                result_data.sinopsis = details["sinopsis"]
+            if details["portada_url"]:
+                result_data.portada_url = details["portada_url"]
+            if details["autores"]:
+                result_data.autores = details["autores"]
+            if details["otras_obras"]:
+                result_data.otras_obras = details["otras_obras"]
+            if details["external_links"]:
+                result_data.external_links = details["external_links"]
 
-    # 3. Translate Synopsis
-    result_data.sinopsis_en = result_data.sinopsis
-    result_data.sinopsis_es = translate_synopsis(result_data.sinopsis)
+        # Fallback: If no authors found via Jikan (or Jikan skipped), use SauceNAO author
+        if not result_data.autores and saucenao_author:
+            result_data.autores = [Author(
+                name=saucenao_author,
+                url="", 
+                mal_id=None,
+                image_url=None 
+            )]
 
-    return result_data
+        # 3. Translate Synopsis
+        result_data.sinopsis_en = result_data.sinopsis
+        result_data.sinopsis_es = translate_synopsis(result_data.sinopsis)
+
+        return result_data
+    
+    except HTTPException:
+        # Re-raise HTTP exceptions (validation errors)
+        raise
+    except Exception as e:
+        # Log and return a user-friendly error for unexpected errors
+        print(f"Error processing image search: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to process image. Please try again with a different image."
+        )
 
 @router.post("/details", response_model=MangaSearchResult)
 async def get_manga_details(

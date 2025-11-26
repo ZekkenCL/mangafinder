@@ -7,9 +7,14 @@ const SourcesCard = ({ result, language }) => {
 
     if (!result) return null;
 
+    const officialSearchLinks = [
+        { name: 'MangaPlus', url: `https://mangaplus.shueisha.co.jp/search_result?keyword=${encodeURIComponent(result.titulo)}` },
+        { name: 'Viz Media', url: `https://www.viz.com/search?search=${encodeURIComponent(result.titulo)}` },
+        { name: 'BookWalker', url: `https://global.bookwalker.jp/search/?word=${encodeURIComponent(result.titulo)}` },
+    ];
+
     const unofficialSources = [
         { name: 'ZonaTMO', url: 'https://zonatmo.com/library' },
-        { name: 'MangaPlus', url: `https://mangaplus.shueisha.co.jp/search_result?keyword=${encodeURIComponent(result.titulo)}` },
         { name: 'MangaDex', url: `https://mangadex.org/search?q=${encodeURIComponent(result.titulo)}` },
         { name: 'Mangakatana', url: `https://mangakatana.com/?search=${encodeURIComponent(result.titulo)}&search_by=book_name` },
     ];
@@ -22,6 +27,11 @@ const SourcesCard = ({ result, language }) => {
             return null;
         }
     };
+
+    // Filter out Wikipedia from external links if you want to keep it strictly "reading/buying"
+    // But "Official Site" is good to keep.
+    const externalLinks = result.external_links ? result.external_links.filter(l => !l.name.toLowerCase().includes('wikipedia')) : [];
+    const hasOfficial = officialSearchLinks.length > 0 || externalLinks.length > 0;
 
     return (
         <motion.div
@@ -38,13 +48,34 @@ const SourcesCard = ({ result, language }) => {
             </h3>
 
             {/* Official Sources */}
-            {result.external_links && result.external_links.length > 0 && (
+            {hasOfficial && (
                 <div className="mb-8">
                     <h4 className="text-gray-500 dark:text-gray-400 text-xs font-mono mb-3 uppercase tracking-wider">{t.officialSources}</h4>
                     <div className="flex flex-wrap gap-3">
-                        {result.external_links.map((link, index) => (
+                        {/* Render Search Links first */}
+                        {officialSearchLinks.map((source, index) => (
                             <a
-                                key={index}
+                                key={`search-${index}`}
+                                href={source.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-primary hover:text-cyber-primary dark:hover:text-cyber-primary transition-all flex items-center gap-2 group"
+                            >
+                                <img
+                                    src={getFaviconUrl(source.url)}
+                                    alt=""
+                                    className="w-4 h-4 rounded-sm"
+                                    onError={(e) => e.target.style.display = 'none'}
+                                />
+                                {source.name}
+                                <span className="text-xs opacity-50 group-hover:opacity-100">↗</span>
+                            </a>
+                        ))}
+
+                        {/* Render Fetched External Links */}
+                        {externalLinks.map((link, index) => (
+                            <a
+                                key={`ext-${index}`}
                                 href={link.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
@@ -87,8 +118,7 @@ const SourcesCard = ({ result, language }) => {
                         </a>
                     ))}
                 </div>
-            </div>
-        </motion.div>
+            </div>        </motion.div>
     );
 };
 

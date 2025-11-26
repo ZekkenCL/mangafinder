@@ -29,6 +29,10 @@ function App() {
   // Confirmation Modal State
   const [showConfirmation, setShowConfirmation] = useState(false);
 
+  // Local loading state to prevent timing issues
+  const [isSearching, setIsSearching] = useState(false);
+  const [fileError, setFileError] = useState(null);
+
   const searchMutation = useSearchManga();
   const detailsMutation = useMangaDetails();
 
@@ -84,6 +88,23 @@ function App() {
   };
 
   const onFileSelected = (file) => {
+    // Reset errors
+    setFileError(null);
+
+    // Validate file type
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+    if (!validTypes.includes(file.type)) {
+      setFileError('Invalid file type. Please upload a JPG, PNG, WEBP, or GIF image.');
+      return;
+    }
+
+    // Validate file size (10MB limit)
+    const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+    if (file.size > maxSize) {
+      setFileError('File is too large. Maximum size is 10MB.');
+      return;
+    }
+
     setSelectedFile(file);
     const objectUrl = URL.createObjectURL(file);
     setPreviewUrl(objectUrl);
@@ -93,31 +114,51 @@ function App() {
   };
 
   const handleSearch = () => {
-    if (!selectedFile) return;
+    console.log('[DEBUG] handleSearch called');
+    if (!selectedFile) {
+      console.log('[DEBUG] No file selected, returning');
+      return;
+    }
 
+    console.log('[DEBUG] Setting result to null and isSearching to true');
     setResult(null);
+    setIsSearching(true); // Set local loading state immediately
 
     const formData = new FormData();
     formData.append('file', selectedFile);
     formData.append('lang', language);
     formData.append('include_nsfw', nsfw);
 
+    console.log('[DEBUG] Calling searchMutation.mutate with:', {
+      fileName: selectedFile.name,
+      fileSize: selectedFile.size,
+      lang: language,
+      nsfw: nsfw
+    });
+
     searchMutation.mutate(formData, {
       onSuccess: (data) => {
+        console.log('[DEBUG] searchMutation onSuccess:', data);
+        setIsSearching(false); // Clear loading state
         if (!data.found) {
+          console.log('[DEBUG] No match found, setting result to null');
           setResult(null);
         } else {
+          console.log('[DEBUG] Match found, setting result');
           setResult(data);
           addToHistory(data);
         }
       },
       onError: (error) => {
+        console.error('[DEBUG] searchMutation onError:', error);
         console.error(error);
+        setIsSearching(false); // Clear loading state on error
       }
     });
   };
 
   const handleManualCrop = () => {
+    setFileError(null); // Clear any file errors when cropping
     setShowCropper(true);
   };
 
@@ -126,6 +167,8 @@ function App() {
     setPreviewUrl(null);
     setCropperImageSrc(null);
     setResult(null);
+    setFileError(null);
+    setIsSearching(false);
   };
 
   const handleCropComplete = async (croppedBlob) => {
@@ -140,6 +183,7 @@ function App() {
     setSelectedFile(file); // Update selected file with cropped version
 
     setResult(null);
+    setIsSearching(true); // Set local loading state
 
     const formData = new FormData();
     formData.append('file', file);
@@ -148,6 +192,7 @@ function App() {
 
     searchMutation.mutate(formData, {
       onSuccess: (data) => {
+        setIsSearching(false);
         if (!data.found) {
           setResult(null);
         } else {
@@ -157,6 +202,7 @@ function App() {
       },
       onError: (error) => {
         console.error(error);
+        setIsSearching(false);
       }
     });
   };
@@ -171,6 +217,8 @@ function App() {
     setPreviewUrl(null);
     setSelectedFile(null);
     setCropperImageSrc(null);
+    setFileError(null);
+    setIsSearching(false);
     searchMutation.reset();
   };
 
@@ -192,9 +240,21 @@ function App() {
     });
   };
 
-  const isLoading = searchMutation.isPending || detailsMutation.isPending;
+  const isLoading = isSearching || searchMutation.isPending || detailsMutation.isPending;
   const error = searchMutation.error || detailsMutation.error;
   const errorMessage = error ? t.error : (result && !result.found ? (result.message || t.warning) : null);
+
+  console.log('[DEBUG] Render state:', {
+    isLoading,
+    isSearching,
+    hasError: !!error,
+    hasResult: !!result,
+    resultFound: result?.found,
+    hasSelectedFile: !!selectedFile,
+    hasFileError: !!fileError,
+    showCropper,
+    searchMutationStatus: searchMutation.status
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-cyber-black text-gray-900 dark:text-white font-sans selection:bg-cyber-secondary selection:text-white overflow-x-hidden relative transition-colors duration-300">
@@ -268,6 +328,12 @@ function App() {
           {errorMessage && (
             <div className="mb-6 p-4 bg-red-900/30 border border-red-500 text-red-200 rounded-lg w-full max-w-2xl text-center">
               {errorMessage}
+            </div>
+          )}
+
+          {fileError && (
+            <div className="mb-6 p-4 bg-red-900/30 border border-red-500 text-red-200 rounded-lg w-full max-w-2xl text-center">
+              {fileError}
             </div>
           )}
 
