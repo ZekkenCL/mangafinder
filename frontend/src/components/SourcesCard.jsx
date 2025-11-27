@@ -50,7 +50,7 @@ const SourcesCard = ({ result, language }) => {
             {/* Official Sources */}
             {hasOfficial && (
                 <div className="mb-8">
-                    <h4 className="text-gray-500 dark:text-gray-400 text-xs font-mono mb-3 uppercase tracking-wider">{t.officialSources}</h4>
+                    <h4 className="text-cyber-primary text-xs font-bold font-mono mb-3 uppercase tracking-wider drop-shadow-sm">{t.officialSources}</h4>
                     <div className="flex flex-wrap gap-3">
                         {/* Render Search Links first */}
                         {officialSearchLinks.map((source, index) => (
@@ -59,16 +59,17 @@ const SourcesCard = ({ result, language }) => {
                                 href={source.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-primary hover:text-cyber-primary dark:hover:text-cyber-primary transition-all flex items-center gap-2 group"
+                                className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-primary hover:text-cyber-primary dark:hover:text-cyber-primary hover:bg-cyber-primary/10 transition-all flex items-center gap-2 group relative overflow-hidden shadow-sm hover:shadow-md hover:shadow-cyber-primary/20"
                             >
+                                <div className="absolute inset-0 bg-gradient-to-r from-cyber-primary/0 via-cyber-primary/5 to-cyber-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                                 <img
                                     src={getFaviconUrl(source.url)}
                                     alt=""
-                                    className="w-4 h-4 rounded-sm"
+                                    className="w-4 h-4 rounded-sm z-10 relative"
                                     onError={(e) => e.target.style.display = 'none'}
                                 />
-                                {source.name}
-                                <span className="text-xs opacity-50 group-hover:opacity-100">↗</span>
+                                <span className="z-10 relative">{source.name}</span>
+                                <span className="text-xs opacity-50 group-hover:opacity-100 z-10 relative">↗</span>
                             </a>
                         ))}
 
@@ -79,16 +80,17 @@ const SourcesCard = ({ result, language }) => {
                                 href={link.url}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-primary hover:text-cyber-primary dark:hover:text-cyber-primary transition-all flex items-center gap-2 group"
+                                className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-primary hover:text-cyber-primary dark:hover:text-cyber-primary hover:bg-cyber-primary/10 transition-all flex items-center gap-2 group relative overflow-hidden shadow-sm hover:shadow-md hover:shadow-cyber-primary/20"
                             >
+                                <div className="absolute inset-0 bg-gradient-to-r from-cyber-primary/0 via-cyber-primary/5 to-cyber-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                                 <img
                                     src={getFaviconUrl(link.url)}
                                     alt=""
-                                    className="w-4 h-4 rounded-sm"
+                                    className="w-4 h-4 rounded-sm z-10 relative"
                                     onError={(e) => e.target.style.display = 'none'}
                                 />
-                                {link.name}
-                                <span className="text-xs opacity-50 group-hover:opacity-100">↗</span>
+                                <span className="z-10 relative">{link.name}</span>
+                                <span className="text-xs opacity-50 group-hover:opacity-100 z-10 relative">↗</span>
                             </a>
                         ))}
                     </div>
@@ -97,7 +99,7 @@ const SourcesCard = ({ result, language }) => {
 
             {/* Unofficial Sources */}
             <div>
-                <h4 className="text-gray-500 dark:text-gray-400 text-xs font-mono mb-3 uppercase tracking-wider">{t.unofficialSources}</h4>
+                <h4 className="text-cyber-primary text-xs font-bold font-mono mb-3 uppercase tracking-wider drop-shadow-sm">{t.unofficialSources}</h4>
                 <div className="flex flex-wrap gap-3">
                     {unofficialSources.map((source, index) => (
                         <a
@@ -105,16 +107,17 @@ const SourcesCard = ({ result, language }) => {
                             href={source.url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-secondary hover:text-cyber-secondary dark:hover:text-cyber-secondary transition-all flex items-center gap-2 group"
+                            className="px-5 py-3 bg-gray-100 dark:bg-cyber-black border border-gray-200 dark:border-cyber-gray rounded-lg text-base font-medium text-gray-700 dark:text-gray-300 hover:border-cyber-secondary hover:text-cyber-secondary dark:hover:text-cyber-secondary hover:bg-cyber-secondary/10 transition-all flex items-center gap-2 group relative overflow-hidden shadow-sm hover:shadow-md hover:shadow-cyber-secondary/20"
                         >
+                            <div className="absolute inset-0 bg-gradient-to-r from-cyber-secondary/0 via-cyber-secondary/5 to-cyber-secondary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                             <img
                                 src={getFaviconUrl(source.url)}
                                 alt=""
-                                className="w-4 h-4 rounded-sm"
+                                className="w-4 h-4 rounded-sm z-10 relative"
                                 onError={(e) => e.target.style.display = 'none'}
                             />
-                            {source.name}
-                            <span className="text-xs opacity-50 group-hover:opacity-100">↗</span>
+                            <span className="z-10 relative">{source.name}</span>
+                            <span className="text-xs opacity-50 group-hover:opacity-100 z-10 relative">↗</span>
                         </a>
                     ))}
                 </div>

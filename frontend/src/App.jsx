@@ -1,19 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import DropZone from './components/DropZone';
-import ResultCard from './components/ResultCard';
-import DetailsCard from './components/DetailsCard';
-import AuthorCard from './components/AuthorCard';
-import RelatedWorksCard from './components/RelatedWorksCard';
-import SourcesCard from './components/SourcesCard';
-import OtherMatches from './components/OtherMatches';
-import History from './components/History';
 import ImageCropper from './components/ImageCropper';
-import ImagePreview from './components/ImagePreview';
 import ResultSkeleton from './components/ResultSkeleton';
 import ConfirmationModal from './components/ConfirmationModal';
 import { translations } from './utils/translations';
 import { useSearchManga, useMangaDetails } from './hooks/useMangaSearch';
 import ThemeToggle from './components/ThemeToggle';
+import HomeView from './views/HomeView';
+import ResultsView from './views/ResultsView';
 
 function App() {
   const [result, setResult] = useState(null);
@@ -341,55 +334,29 @@ function App() {
           {isLoading ? (
             <ResultSkeleton />
           ) : !result ? (
-            selectedFile && !showCropper ? (
-              <ImagePreview
-                imageSrc={previewUrl}
-                onSearch={handleSearch}
-                onCrop={handleManualCrop}
-                onCancel={handleCancelSelection}
-              />
-            ) : (
-              <>
-                <DropZone onFileSelected={onFileSelected} isLoading={isLoading} language={language} />
-                <History
-                  history={history}
-                  onSelect={handleSelectMatch}
-                  language={language}
-                  onClear={clearHistory}
-                  onRemove={removeFromHistory}
-                />
-              </>
-            )
+            <HomeView
+              isLoading={isLoading}
+              selectedFile={selectedFile}
+              previewUrl={previewUrl}
+              showCropper={showCropper}
+              language={language}
+              history={history}
+              onFileSelected={onFileSelected}
+              onSearch={handleSearch}
+              onCrop={handleManualCrop}
+              onCancelSelection={handleCancelSelection}
+              onSelectMatch={handleSelectMatch}
+              onClearHistory={clearHistory}
+              onRemoveHistory={removeFromHistory}
+            />
           ) : (
-            <>
-              <ResultCard result={result} onReset={handleReset} language={language} previewUrl={previewUrl} />
-
-              <DetailsCard result={result} language={language} />
-              {/* ... rest of result view */}
-
-
-              {result.autores && (
-                <AuthorCard authors={result.autores} language={language} />
-              )}
-
-              {result.otras_obras && result.autores && result.autores.length > 0 && (
-                <RelatedWorksCard
-                  works={result.otras_obras}
-                  authorName={result.autores[0].name}
-                  language={language}
-                />
-              )}
-
-              <SourcesCard result={result} language={language} />
-
-              {result.otras_coincidencias && (
-                <OtherMatches
-                  matches={result.otras_coincidencias}
-                  language={language}
-                  onSelect={handleSelectMatch}
-                />
-              )}
-            </>
+            <ResultsView
+              result={result}
+              language={language}
+              previewUrl={previewUrl}
+              onReset={handleReset}
+              onSelectMatch={handleSelectMatch}
+            />
           )}
         </main>
 
