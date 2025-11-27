@@ -16,6 +16,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
         warning
     } = result;
 
+
     return (
         <>
             <motion.div
@@ -28,6 +29,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                 <div className="absolute bottom-0 left-0 w-32 h-32 bg-cyber-secondary/10 rounded-full blur-3xl pointer-events-none hidden dark:block"></div>
 
                 {/* Match Header - Compact Comparison */}
+                {/* Match Header - Compact Comparison */}
                 <div className="bg-gray-100/80 dark:bg-black/40 border-b border-gray-200 dark:border-cyber-gray p-4 pb-10 flex items-center justify-center relative backdrop-blur-sm">
                     <div className="flex items-center gap-6">
                         {previewUrl && (
@@ -35,7 +37,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                                 className="relative group cursor-pointer"
                                 onClick={() => setSelectedImage(previewUrl)}
                             >
-                                <div className="w-24 h-36 rounded-lg overflow-hidden border-2 border-cyber-gray shadow-lg group-hover:border-cyber-primary transition-colors">
+                                <div className="w-40 h-60 rounded-lg overflow-hidden border-2 border-cyber-gray shadow-lg group-hover:border-cyber-primary transition-colors">
                                     <img src={previewUrl} alt="Upload" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="absolute -bottom-6 left-0 w-full text-center">
@@ -56,7 +58,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
                                 className="relative group cursor-pointer"
                                 onClick={() => setSelectedImage(result.match_image_url)}
                             >
-                                <div className="w-24 h-36 rounded-lg overflow-hidden border-2 border-cyber-primary shadow-[0_0_15px_rgba(0,243,255,0.3)] group-hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transition-shadow">
+                                <div className="w-40 h-60 rounded-lg overflow-hidden border-2 border-cyber-primary shadow-[0_0_15px_rgba(0,243,255,0.3)] group-hover:shadow-[0_0_25px_rgba(0,243,255,0.5)] transition-shadow">
                                     <img src={result.match_image_url} alt="Match" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="absolute -bottom-6 left-0 w-full text-center">
@@ -68,7 +70,7 @@ const ResultCard = ({ result, onReset, language, previewUrl }) => {
 
                     <button
                         onClick={onReset}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 px-4 py-2 bg-white dark:bg-cyber-black border border-gray-300 dark:border-cyber-gray hover:border-cyber-primary text-gray-600 dark:text-gray-300 hover:text-cyber-primary dark:hover:text-white text-xs font-mono tracking-widest transition-all rounded hover:shadow-md dark:hover:shadow-[0_0_10px_rgba(0,243,255,0.2)]"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 px-6 py-2 bg-cyber-primary text-black font-bold text-xs font-mono tracking-widest uppercase rounded shadow-[0_0_10px_rgba(0,243,255,0.4)] hover:shadow-[0_0_20px_rgba(0,243,255,0.6)] hover:scale-105 transition-all duration-300 border border-transparent"
                     >
                         {t.searchAgain}
                     </button>
